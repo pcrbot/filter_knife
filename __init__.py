@@ -3,11 +3,51 @@ from hoshino import Service
 import copy
 import sqlite3
 import aiohttp
+import json
+import os
+import hoshino
 
-yobot_url = '' #请修改为你的yobot网址
+def get_db_path():
+    if not (os.path.isfile(os.path.abspath(os.path.join(os.path.dirname(__file__), "../"
+                                                        "yobot/yobot/src/client/yobot_data/yobotdata.db"))) or os.access(os.path.abspath(os.path.join(os.path.dirname(__file__), "../"
+                                                                                                                                                      "yobot/yobot/src/client/yobot_data/yobotdata.db")), os.R_OK)):
+        raise OSError
+    db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"
+                                           "yobot/yobot/src/client/yobot_data/yobotdata.db"))
+    return db_path
 
-# 请指定下一行代码中yobot的数据库路径
-DB_PATH = '/root/HoshinoBot/hoshino/modules/yobot/yobot/src/client/yobot_data/yobotdata.db'
+
+def get_web_address():
+    if not os.path.isfile(os.path.abspath(os.path.join(os.path.dirname(__file__), "../"
+                                                       "yobot/yobot/src/client/yobot_data/yobot_config.json"))):
+        raise OSError
+    config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"
+                                               "yobot/yobot/src/client/yobot_data/yobot_config.json"))
+    with open(f'{config_path}', 'r', encoding='utf8')as fp:
+        yobot_config = json.load(fp)
+    website_suffix = str(yobot_config["public_basepath"])
+    web_address = "http://127.0.0.1" + ":" + str(hoshino.config.PORT) + website_suffix
+    return web_address
+
+#=============本段配置插件版不填===============
+
+#=============便携版或源码版必填===============
+
+try:
+    yobot_url = get_web_address()
+except OSError:
+    yobot_url = '' 
+    # 获取主页地址：在群内向bot发送指令“手册”，复制bot发送的链接地址，删除末尾的manual/后即为主页地址
+    # 例:https://域名/目录/或http://IP地址:端口号/目录/,注意不要漏掉最后的斜杠！
+
+try:
+    DB_PATH = get_db_path()
+except OSError:
+    DB_PATH = ''
+    # 例：C:/Hoshino/hoshino/modules/yobot/yobot/src/client/yobot_data/yobotdata.db
+    # 注意斜杠方向！！！
+
+#==============================================
 
 
 
@@ -62,7 +102,7 @@ def get_apikey(gid:str) -> str:
 async def get_boss_hp(gid:str) -> str:
 
     apikey = get_apikey(gid)
-    url = f'{yobot_url}/yobot/clan/{gid}/statistics/api/?apikey={apikey}'
+    url = f'{yobot_url}clan/{gid}/statistics/api/?apikey={apikey}'
 
     session = aiohttp.ClientSession()
     async with session.get(url) as resp:
@@ -133,6 +173,12 @@ def get_filter_knife_info(gid):
 @sv.on_prefix(["开始筛刀","结束筛刀","筛刀开始","筛刀结束"])
 async def _ (bot, ev):
     gid = str(ev['group_id'])
+    if len(yobot_url) == 0:
+        await bot.send(ev, f'获取api地址失败，请检查配置')
+        return
+    if not get_db_path():
+        await bot.send(ev, f'获取数据库路径失败，请检查配置')
+        return
     if gid in boss_HP:
         boss_HP.pop(gid)
     filter_knife_data[gid] = {}
