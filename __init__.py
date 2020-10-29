@@ -220,6 +220,9 @@ async def _ (bot, ev):
 @sv.on_prefix(["筛刀信息"])
 async def _ (bot, ev):
     gid = str(ev['group_id'])
+
+    boss_HP[gid] = int(await get_boss_hp(gid))
+    gid = str(ev['group_id'])
     await bot.send(ev, get_filter_knife_info(gid))
 
 
