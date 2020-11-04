@@ -11,7 +11,7 @@ def get_db_path():
     if not (os.path.isfile(os.path.abspath(os.path.join(os.path.dirname(__file__), "../"
                                                         "yobot/yobot/src/client/yobot_data/yobotdata.db"))) or os.access(os.path.abspath(os.path.join(os.path.dirname(__file__), "../"
                                                                                                                                                       "yobot/yobot/src/client/yobot_data/yobotdata.db")), os.R_OK)):
-        raise OSError
+        return None
     db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"
                                            "yobot/yobot/src/client/yobot_data/yobotdata.db"))
     return db_path
@@ -20,29 +20,28 @@ def get_db_path():
 def get_web_address():
     if not os.path.isfile(os.path.abspath(os.path.join(os.path.dirname(__file__), "../"
                                                        "yobot/yobot/src/client/yobot_data/yobot_config.json"))):
-        raise OSError
+        return None
     config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"
                                                "yobot/yobot/src/client/yobot_data/yobot_config.json"))
     with open(f'{config_path}', 'r', encoding='utf8')as fp:
         yobot_config = json.load(fp)
     website_suffix = str(yobot_config["public_basepath"])
-    web_address = "http://127.0.0.1" + ":" + str(hoshino.config.PORT) + website_suffix
+    port = str(hoshino.config.PORT)
+    web_address = "http://127.0.0.1" + ":" + port + website_suffix
     return web_address
 
 #=============本段配置插件版不填===============
 
-#=============便携版或源码版必填===============
 
-try:
-    yobot_url = get_web_address()
-except OSError:
+#=============便携版或源码版必填===============
+yobot_url = get_web_address()
+if not yobot_url:
     yobot_url = '' 
     # 获取主页地址：在群内向bot发送指令“手册”，复制bot发送的链接地址，删除末尾的manual/后即为主页地址
     # 例:https://域名/目录/或http://IP地址:端口号/目录/,注意不要漏掉最后的斜杠！
 
-try:
-    DB_PATH = get_db_path()
-except OSError:
+DB_PATH = get_db_path()
+if not DB_PATH:
     DB_PATH = ''
     # 例：C:/Hoshino/hoshino/modules/yobot/yobot/src/client/yobot_data/yobotdata.db
     # 注意斜杠方向！！！
