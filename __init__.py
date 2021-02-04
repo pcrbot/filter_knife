@@ -175,7 +175,7 @@ async def _ (bot, ev):
     if len(yobot_url) == 0:
         await bot.send(ev, f'获取api地址失败，请检查配置')
         return
-    if not get_db_path():
+    if not DB_PATH:
         await bot.send(ev, f'获取数据库路径失败，请检查配置')
         return
     if gid in boss_HP:
