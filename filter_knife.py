@@ -51,6 +51,21 @@ if not DB_PATH:
 
 
 
+bossData = {
+    'cn':{    
+    'hp1': [6000000, 8000000, 10000000, 12000000, 15000000],
+    'hp2': [6000000, 8000000, 10000000, 12000000, 15000000],
+    'hp3': [6000000, 8000000, 10000000, 12000000, 15000000],
+    'hp4': [6000000, 8000000, 10000000, 12000000, 15000000],
+    'hp5': [6000000, 8000000, 10000000, 12000000, 15000000],
+    },
+    'tw':{    
+    'hp1': [6000000, 8000000, 10000000, 12000000, 15000000],
+    'hp2': [6000000, 8000000, 10000000, 12000000, 15000000],
+    'hp3': [7000000, 9000000, 13000000, 15000000, 20000000],
+    'hp4': [17000000, 18000000, 20000000, 21000000, 23000000],
+    'hp5': [85000000, 90000000, 95000000, 100000000, 110000000],}
+}
 
 filter_knife_data = {
     # "QQ群号":{
@@ -99,17 +114,34 @@ def get_apikey(gid:str) -> str:
     return apikey
 
 
-async def get_boss_hp(gid:str) -> str:
+async def get_boss_HP(gid:str) -> str:
 
     apikey = get_apikey(gid)
     url = f'{yobot_url}clan/{gid}/statistics/api/?apikey={apikey}'
-
     session = aiohttp.ClientSession()
     async with session.get(url) as resp:
         data = await resp.json()
         boss_hp = data["challenges"][-1]["health_ramain"]  # 获取最后一刀的boss血量
-
+        if boss_hp == 0:
+            server = data["groupinfo"][-1]["game_server"]  # 获取服务器
+            Zhou = data["challenges"][-1]["cycle"]
+            Hao = data["challenges"][-1]["boss_num"]
+            Hao += 1
+            if Hao > 5:
+                Zhou += 1
+                Hao = 1
+            if Zhou <= 3:
+                boss_hp = bossData[server]['hp1'][Hao-1]
+            if Zhou <= 10:
+                boss_hp = bossData[server]['hp2'][Hao-1]
+            if Zhou <= 34:
+                boss_hp = bossData[server]['hp3'][Hao-1]
+            if Zhou >= 35:
+                boss_hp = bossData[server]['hp4'][Hao-1]
+            if Zhou >= 45:
+                boss_hp = bossData[server]['hp5'][Hao-1]
         return boss_hp
+
 
 def get_compensate_time(_damage,gid):
     damage = int(_damage)
